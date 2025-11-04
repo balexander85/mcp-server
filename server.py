@@ -42,6 +42,7 @@ class RepoData(BaseModel):
     description: str | None
     url: str
     visibility: Literal["public"] | Literal["private"]
+    fork: bool
 
 
 ## Github API Docs https://docs.github.com/en/rest/repos/repos
@@ -92,6 +93,7 @@ async def get_forked_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
                         description=repo.get("description"),
                         url=repo.get("html_url"),
                         visibility=repo.get("visibility"),
+                        fork=repo.get("fork"),
                     )
                 )
         url = response.links.get("next", {}).get("url")  # Get the next page URL
