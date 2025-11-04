@@ -15,7 +15,7 @@ from mcp.server.session import ServerSession
 from util import make_github_request
 
 # Create MCP instance
-mcp = FastMCP(name="Local MCP Server")
+mcp = FastMCP(name="Home")
 
 
 class RepoData(BaseModel):
@@ -45,13 +45,14 @@ class RepoData(BaseModel):
 
 
 @mcp.tool(
-    name="Get Forked Repos",
-    description="Fetches an array of forked repositories from GitHub.",
+    name="List Repositories",
+    title="List GitHub Repositories",
+    description="Fetches repositories from GitHub with optional filtering.",
 )
-async def get_forked_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
-    """Fetches an array of forked repositories from GitHub.
+async def get_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
+    """Fetches an array of repositories from GitHub.
 
-    This tool retrieves all forked repositories owned by the authenticated user.
+    This tool retrieves all repositories owned by the authenticated user.
     It uses the GitHub API token from environment variables for authentication.
 
     Args:
@@ -73,25 +74,49 @@ async def get_forked_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
         data = response.json()
         await ctx.info(f"response.request.url: {response.request.url}")
         for repo in data:
-            if repo.get("fork"):
-                repos.append(
-                    RepoData(
-                        id=repo.get("id"),
-                        owner=repo.get("owner", {}).get("login"),
-                        name=repo.get("name"),
-                        description=repo.get("description"),
-                        url=repo.get("html_url"),
-                        visibility=repo.get("visibility"),
-                        fork=repo.get("fork"),
-                    )
+            repos.append(
+                RepoData(
+                    id=repo.get("id"),
+                    owner=repo.get("owner", {}).get("login"),
+                    name=repo.get("name"),
+                    description=repo.get("description"),
+                    url=repo.get("html_url"),
+                    visibility=repo.get("visibility"),
+                    fork=repo.get("fork"),
                 )
+            )
         url = response.links.get("next", {}).get("url")  # Get the next page URL
 
     return repos
 
 
 @mcp.tool(
-    name="Delete Repo", description="Deletes a repository owned by a specific user."
+    name="List Forked Repositories",
+    title="List Forked GitHub Repositories",
+    description="Fetches an array of forked repositories from GitHub.",
+)
+async def get_forked_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
+    """Fetches an array of forked repositories from GitHub.
+
+    This tool retrieves all forked repositories owned by the authenticated user.
+    It uses the GitHub API token from environment variables for authentication.
+
+    Args:
+        ctx (Context[ServerSession, None]): Context for the MCP server session
+
+    Returns:
+        List[RepoData]: A list of RepoData objects representing forked repositories
+
+    Example:
+        repos = await get_forked_repos(ctx)
+    """
+    return [repo for repo in await get_repos(ctx) if repo.fork]
+
+
+@mcp.tool(
+    name="Delete Repository",
+    title="Delete GitHub Repository",
+    description="Deletes a repository owned by a specific user."
 )
 async def delete_repo(owner: str, name: str, ctx: Context[ServerSession, None]) -> int:
     """Deletes a repository owned by a specific user.
@@ -108,7 +133,7 @@ async def delete_repo(owner: str, name: str, ctx: Context[ServerSession, None]) 
         int: The HTTP status code of the deletion request (204 for success)
 
     Example:
-        delete_repo("johnsmith", "my-project", ctx)
+        delete_repo("johndoe", "my-project", ctx)
     """
     await ctx.info("Info: Starting deleting processing")
     response = make_github_request(url=f"repos/{owner}/{name}", method="DELETE")
@@ -117,7 +142,8 @@ async def delete_repo(owner: str, name: str, ctx: Context[ServerSession, None]) 
 
 
 @mcp.tool(
-    name="Make Repo Private",
+    name="Make Repository Private",
+    title="Set Repository Privacy to Private",
     description="This tool updates a repository's visibility setting to private.",
 )
 async def make_repo_private(
@@ -134,7 +160,7 @@ async def make_repo_private(
         int: The HTTP status code of the update request
 
     Example:
-        status_code = await make_repo_private("johnsmith", "my-project", ctx)
+        status_code = await make_repo_private("johndoe", "my-project", ctx)
     """
     await ctx.info(f"Info: Updating {name} to be private")
     data = {"visibility": "private"}
@@ -146,7 +172,8 @@ async def make_repo_private(
 
 
 @mcp.tool(
-    name="Unarchive Repo",
+    name="Unarchive Repository",
+    title="Unarchive GitHub Repository",
     description="This tool unarchives a repository that was previously archived.",
 )
 async def unarchive_repo(
@@ -163,7 +190,7 @@ async def unarchive_repo(
         int: The HTTP status code of the update request
 
     Example:
-        status_code = await unarchive_repo("johnsmith", "my-project", ctx)
+        status_code = await unarchive_repo("johndoe", "my-project", ctx)
     """
     await ctx.info(f"Info: Unarchiving {name}")
     data = {"archived": False}
@@ -175,7 +202,8 @@ async def unarchive_repo(
 
 
 @mcp.tool(
-    name="Archive Repo",
+    name="Archive Repository",
+    title="Archive GitHub Repository",
     description="This tool archives a repository, making it read-only.",
 )
 async def archive_repo(owner: str, name: str, ctx: Context[ServerSession, None]) -> int:
@@ -190,7 +218,7 @@ async def archive_repo(owner: str, name: str, ctx: Context[ServerSession, None])
         int: The HTTP status code of the update request
 
     Example:
-        status_code = await archive_repo("johnsmith", "my-project", ctx)
+        status_code = await archive_repo("johndoe", "my-project", ctx)
     """
     await ctx.info(f"Info: Unarchiving {name}")
     data = {"archived": True}
