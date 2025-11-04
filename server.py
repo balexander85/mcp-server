@@ -29,7 +29,8 @@ class RepoData(BaseModel):
         description: The repository description.
         url: The repository URL.
         visibility: Is repository public or private
-        fork: Is repository forked?
+        fork: Is repository forked
+        archived: Is the repository archived
     """
 
     id: int
@@ -39,6 +40,7 @@ class RepoData(BaseModel):
     url: str
     visibility: Literal["public"] | Literal["private"]
     fork: bool
+    archived: bool
 
 
 ## Github API Docs https://docs.github.com/en/rest/repos/repos
@@ -65,7 +67,11 @@ async def get_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
         repos = await get_forked_repos(ctx)
     """
     await ctx.info("Info: Starting processing")
-    params = {"per_page": 100, "sort": "created", "direction": "asc"}
+    params = {
+        "per_page": 100,
+        "sort": "created",
+        "direction": "asc",
+    }
     url = "user/repos"  # Adjust per_page as needed
     repos: List[RepoData] = []
     while url:
@@ -83,11 +89,35 @@ async def get_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
                     url=repo.get("html_url"),
                     visibility=repo.get("visibility"),
                     fork=repo.get("fork"),
+                    archived=repo.get("archived"),
                 )
             )
         url = response.links.get("next", {}).get("url")  # Get the next page URL
 
     return repos
+
+
+@mcp.tool(
+    name="List Archived Repositories",
+    title="List Archived GitHub Repositories",
+    description="Fetches an array of archived repositories from GitHub.",
+)
+async def get_archived_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
+    """Fetches an array of archived repositories from GitHub.
+
+    This tool retrieves all archived repositories owned by the authenticated user.
+    It uses the GitHub API token from environment variables for authentication.
+
+    Args:
+        ctx (Context[ServerSession, None]): Context for the MCP server session
+
+    Returns:
+        List[RepoData]: A list of RepoData objects representing archived repositories
+
+    Example:
+        repos = await get_archived_repos(ctx)
+    """
+    return [repo for repo in await get_repos(ctx) if repo.archived]
 
 
 @mcp.tool(
@@ -116,7 +146,7 @@ async def get_forked_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
 @mcp.tool(
     name="Delete Repository",
     title="Delete GitHub Repository",
-    description="Deletes a repository owned by a specific user."
+    description="Deletes a repository owned by a specific user.",
 )
 async def delete_repo(owner: str, name: str, ctx: Context[ServerSession, None]) -> int:
     """Deletes a repository owned by a specific user.
