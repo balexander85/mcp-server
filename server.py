@@ -76,7 +76,6 @@ async def get_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
     repos: List[RepoData] = []
     while url:
         response = make_github_request(url, params=params)
-        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
         data = response.json()
         await ctx.info(f"response.request.url: {response.request.url}")
         for repo in data:
@@ -167,7 +166,34 @@ async def delete_repo(owner: str, name: str, ctx: Context[ServerSession, None]) 
     """
     await ctx.info("Info: Starting deleting processing")
     response = make_github_request(url=f"repos/{owner}/{name}", method="DELETE")
-    response.raise_for_status()
+    return response.status_code
+
+
+@mcp.tool(
+    name="Update Repository",
+    title="Set Repository attribute",
+    description="This tool updates a repository's attribute",
+)
+async def update_repo(
+    owner: str, name: str, payload: {}, ctx: Context[ServerSession, None]
+) -> int:
+    """This tool updates a repository's attribute.
+
+    Args:
+        owner (str): The GitHub username or organization name that owns the repository
+        name (str): The name of the repository to make private
+        payload (dict): Object containing the attributes to be updated
+        ctx (Context[ServerSession, None]): Context for the MCP server session
+
+    Returns:
+        int: The HTTP status code of the update request
+
+    Example:
+        status_code = await update_repo("johndoe", "my-project", {"visibility": "private"}, ctx)
+    """
+    response = make_github_request(
+        url=f"repos/{owner}/{name}", method="PATCH", data=json.dumps(payload)
+    )
     return response.status_code
 
 
@@ -194,11 +220,7 @@ async def make_repo_private(
     """
     await ctx.info(f"Info: Updating {name} to be private")
     data = {"visibility": "private"}
-    response = make_github_request(
-        url=f"repos/{owner}/{name}", method="PATCH", data=json.dumps(data)
-    )
-    response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
-    return response.status_code
+    return await update_repo(owner, name, data)
 
 
 @mcp.tool(
@@ -224,11 +246,7 @@ async def unarchive_repo(
     """
     await ctx.info(f"Info: Unarchiving {name}")
     data = {"archived": False}
-    response = make_github_request(
-        f"repos/{owner}/{name}", method="PATCH", data=json.dumps(data)
-    )
-    response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
-    return response.status_code
+    return await update_repo(owner, name, data)
 
 
 @mcp.tool(
@@ -252,11 +270,7 @@ async def archive_repo(owner: str, name: str, ctx: Context[ServerSession, None])
     """
     await ctx.info(f"Info: Unarchiving {name}")
     data = {"archived": True}
-    response = make_github_request(
-        url=f"repos/{owner}/{name}", method="PATCH", data=json.dumps(data)
-    )
-    response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
-    return response.status_code
+    return await update_repo(owner, name, data)
 
 
 if __name__ == "__main__":

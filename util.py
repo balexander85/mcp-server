@@ -49,5 +49,5 @@ def make_github_request(
         headers.update(kwargs["headers"])
     kwargs["headers"] = headers
     response = requests.request(method, GITHUB_API_BASE_URL + url, **kwargs)
-    response.raise_for_status()
+    response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
     return response
