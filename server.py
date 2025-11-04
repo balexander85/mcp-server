@@ -6,22 +6,16 @@ includes tools for managing github repositories
 
 from pydantic import BaseModel
 
-from os import getenv
 from typing import List, Literal
 import json
 
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.session import ServerSession
 
-from dotenv import load_dotenv
-import requests
+from util import make_github_request
 
-# load environment variables
-load_dotenv()
 # Create MCP instance
 mcp = FastMCP(name="Local MCP Server")
-
-GITHUB_API_BASE_URL = "https://api.github.com/"
 
 
 class RepoData(BaseModel):
@@ -50,49 +44,10 @@ class RepoData(BaseModel):
 ## Github API Docs https://docs.github.com/en/rest/repos/repos
 
 
-def get_github_token() -> str:
-    """Get GitHub token from environment variable.
-
-    Returns:
-        str: The GitHub API token
-
-    Raises:
-        ValueError: If GITHUB_TOKEN environment variable is not set or empty
-    """
-    token = getenv("GITHUB_TOKEN")
-    if not token:
-        raise ValueError("GITHUB_TOKEN environment variable is not set")
-    if not token.strip():
-        raise ValueError("GITHUB_TOKEN environment variable is empty")
-    return token
-
-
-def make_github_request(
-    url: str, method: Literal["GET", "DELETE", "PATCH"] = "GET", **kwargs
-) -> requests.Response:
-    """Make a GitHub API request with proper headers.
-
-    Args:
-        url (str): The GitHub API endpoint URL
-        method (Literal["GET", "DELETE", "PATCH"]): HTTP method to use
-        **kwargs: Additional arguments to pass to requests.request
-
-    Returns:
-        requests.Response: The HTTP response from GitHub API
-
-    Raises:
-        requests.RequestException: If the request fails
-    """
-    headers = {"Authorization": f"token {get_github_token()}"}
-    if "headers" in kwargs:
-        headers.update(kwargs["headers"])
-    kwargs["headers"] = headers
-    response = requests.request(method, GITHUB_API_BASE_URL + url, **kwargs)
-    response.raise_for_status()
-    return response
-
-
-@mcp.tool()
+@mcp.tool(
+    name="Get Forked Repos",
+    description="Fetches an array of forked repositories from GitHub.",
+)
 async def get_forked_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
     """Fetches an array of forked repositories from GitHub.
 
@@ -135,7 +90,9 @@ async def get_forked_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
     return repos
 
 
-@mcp.tool()
+@mcp.tool(
+    name="Delete Repo", description="Deletes a repository owned by a specific user."
+)
 async def delete_repo(owner: str, name: str, ctx: Context[ServerSession, None]) -> int:
     """Deletes a repository owned by a specific user.
 
@@ -159,13 +116,14 @@ async def delete_repo(owner: str, name: str, ctx: Context[ServerSession, None]) 
     return response.status_code
 
 
-@mcp.tool()
+@mcp.tool(
+    name="Make Repo Private",
+    description="This tool updates a repository's visibility setting to private.",
+)
 async def make_repo_private(
     owner: str, name: str, ctx: Context[ServerSession, None]
 ) -> int:
-    """Changes repository visibility to private.
-
-    This tool updates a repository's visibility setting to private.
+    """This tool updates a repository's visibility setting to private.
 
     Args:
         owner (str): The GitHub username or organization name that owns the repository
@@ -187,13 +145,14 @@ async def make_repo_private(
     return response.status_code
 
 
-@mcp.tool()
+@mcp.tool(
+    name="Unarchive Repo",
+    description="This tool unarchives a repository that was previously archived.",
+)
 async def unarchive_repo(
     owner: str, name: str, ctx: Context[ServerSession, None]
 ) -> int:
-    """Unarchives a repository.
-
-    This tool unarchives a repository that was previously archived.
+    """This tool unarchives a repository that was previously archived.
 
     Args:
         owner (str): The GitHub username or organization name that owns the repository
@@ -215,11 +174,12 @@ async def unarchive_repo(
     return response.status_code
 
 
-@mcp.tool()
+@mcp.tool(
+    name="Archive Repo",
+    description="This tool archives a repository, making it read-only.",
+)
 async def archive_repo(owner: str, name: str, ctx: Context[ServerSession, None]) -> int:
-    """Archives a repository.
-
-    This tool archives a repository, making it read-only.
+    """This tool archives a repository, making it read-only.
 
     Args:
         owner (str): The GitHub username or organization name that owns the repository
