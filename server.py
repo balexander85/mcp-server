@@ -175,7 +175,7 @@ async def delete_repo(owner: str, name: str, ctx: Context[ServerSession, None]) 
     description="This tool updates a repository's attribute",
 )
 async def update_repo(
-    owner: str, name: str, payload: {}, ctx: Context[ServerSession, None]
+    owner: str, name: str, payload: dict, ctx: Context[ServerSession, None]
 ) -> int:
     """This tool updates a repository's attribute.
 
@@ -191,6 +191,7 @@ async def update_repo(
     Example:
         status_code = await update_repo("johndoe", "my-project", {"visibility": "private"}, ctx)
     """
+    await ctx.info(f"Info: Updating {owner}/{name} repo")
     response = make_github_request(
         url=f"repos/{owner}/{name}", method="PATCH", data=json.dumps(payload)
     )
