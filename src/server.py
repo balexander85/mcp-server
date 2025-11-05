@@ -2,6 +2,9 @@
 First attempt at creating a MCP server
 
 includes tools for managing github repositories
+
+Model Context Protocol Python SDK Docs https://github.com/modelcontextprotocol/python-sdk
+Github API Docs https://docs.github.com/en/rest/repos/repos
 """
 
 from typing import List
@@ -16,9 +19,6 @@ from util import make_github_request
 
 # Create MCP instance
 mcp = FastMCP(name="Home")
-
-
-## Github API Docs https://docs.github.com/en/rest/repos/repos
 
 
 @mcp.tool(
