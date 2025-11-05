@@ -12,12 +12,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag test-mcp-server:latest
+        id: build-image
 
       - name: Save Docker image as artifact
         uses: actions/upload-artifact@v4
         with:
           name: docker-image
-          path: .
+          path: .  # Save the directory containing the image (Docker saves it as a tarball within that directory)
+          retention-days: 7
 
   test:
     needs: build
