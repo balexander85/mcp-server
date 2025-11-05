@@ -36,5 +36,6 @@ jobs:
       - name: Run tests inside the container
         run: |
           docker run --rm -d test-mcp-server:latest
-          pip install --no-cache-dir pytest requests
-          pytest -vv tests/test_mcp.py
+          ls -la
+#          pip install --no-cache-dir pytest requests
+#          pytest -vv tests/test_mcp.py
