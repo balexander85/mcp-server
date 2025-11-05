@@ -36,6 +36,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run tests inside the container
         run: |
-          docker run --rm -d -p 8001:8000 test-mcp-server:latest
+          docker run --restart unless-stopped -d -p 8001:8000 test-mcp-server:latest
           pip install --no-cache-dir pytest requests
           pytest -vv tests/test_mcp.py
