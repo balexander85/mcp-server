@@ -11,15 +11,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag test-mcp-server:latest
-        id: build-image
-
+        run: |
+          docker build . --file Dockerfile --tag test-mcp-server:latest
+          docker save -o /tmp/docker-image.tar test-mcp-server:latest
       - name: Save Docker image as artifact
         uses: actions/upload-artifact@v4
         with:
           name: docker-image
-          path: .  # Save the directory containing the image (Docker saves it as a tarball within that directory)
-          retention-days: 7
+          path: /tmp/docker-image.tar
 
   test:
     needs: build
@@ -30,11 +29,11 @@ jobs:
         with:
           name: docker-image
 
-#      - name: Load Docker image
-#        run: docker compose up -d --build
+      - name: Load Docker image
+        run: docker load < /tmp/docker-image.tar
 
       - name: Run tests inside the container
         run: |
-          docker compose up -d --build
+          docker run --rm test-mcp-server:latest
           pip install --no-cache-dir pytest requests
           pytest -vv tests/test_mcp.py
