@@ -4,43 +4,18 @@ First attempt at creating a MCP server
 includes tools for managing github repositories
 """
 
-from pydantic import BaseModel
-
-from typing import List, Literal
+from typing import List
 import json
 
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.session import ServerSession
 
+from models.github import RepoData
 from util import make_github_request
+
 
 # Create MCP instance
 mcp = FastMCP(name="Home")
-
-
-class RepoData(BaseModel):
-    """
-    Represents a repository from GitHub.
-
-    Attributes:
-        id: The repository ID.
-        owner: The repository owner.
-        name: The repository name.
-        description: The repository description.
-        url: The repository URL.
-        visibility: Is repository public or private
-        fork: Is repository forked
-        archived: Is the repository archived
-    """
-
-    id: int
-    owner: str
-    name: str
-    description: str | None
-    url: str
-    visibility: Literal["public"] | Literal["private"]
-    fork: bool
-    archived: bool
 
 
 ## Github API Docs https://docs.github.com/en/rest/repos/repos
@@ -275,6 +250,4 @@ async def archive_repo(owner: str, name: str, ctx: Context[ServerSession, None])
 
 
 if __name__ == "__main__":
-    # Run with SSE transport
-    # Host and port are configured via environment variables
     mcp.run()
