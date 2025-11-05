@@ -31,4 +31,9 @@ jobs:
           name: docker-image
 
       - name: Load Docker image
-        run: docker images
+        run: docker compose up -d --build
+
+      - name: Run tests inside the container
+        run: |
+          pip install pytest requests
+          pytest --version
