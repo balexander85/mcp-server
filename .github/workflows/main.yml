@@ -31,7 +31,7 @@ jobs:
           name: docker-image
 
       - name: Load Docker image
-        run: docker load -i docker-image.zip
+        run: ls -la
 
       - name: Run tests inside the container
         run: |
