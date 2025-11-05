@@ -29,7 +29,8 @@ class RepoData(BaseModel):
         description: The repository description.
         url: The repository URL.
         visibility: Is repository public or private
-        fork: Is repository forked?
+        fork: Is repository forked
+        archived: Is the repository archived
     """
 
     id: int
@@ -39,6 +40,7 @@ class RepoData(BaseModel):
     url: str
     visibility: Literal["public"] | Literal["private"]
     fork: bool
+    archived: bool
 
 
 ## Github API Docs https://docs.github.com/en/rest/repos/repos
@@ -65,12 +67,15 @@ async def get_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
         repos = await get_forked_repos(ctx)
     """
     await ctx.info("Info: Starting processing")
-    params = {"per_page": 100, "sort": "created", "direction": "asc"}
+    params = {
+        "per_page": 100,
+        "sort": "created",
+        "direction": "asc",
+    }
     url = "user/repos"  # Adjust per_page as needed
     repos: List[RepoData] = []
     while url:
         response = make_github_request(url, params=params)
-        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
         data = response.json()
         await ctx.info(f"response.request.url: {response.request.url}")
         for repo in data:
@@ -83,11 +88,35 @@ async def get_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
                     url=repo.get("html_url"),
                     visibility=repo.get("visibility"),
                     fork=repo.get("fork"),
+                    archived=repo.get("archived"),
                 )
             )
         url = response.links.get("next", {}).get("url")  # Get the next page URL
 
     return repos
+
+
+@mcp.tool(
+    name="List Archived Repositories",
+    title="List Archived GitHub Repositories",
+    description="Fetches an array of archived repositories from GitHub.",
+)
+async def get_archived_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
+    """Fetches an array of archived repositories from GitHub.
+
+    This tool retrieves all archived repositories owned by the authenticated user.
+    It uses the GitHub API token from environment variables for authentication.
+
+    Args:
+        ctx (Context[ServerSession, None]): Context for the MCP server session
+
+    Returns:
+        List[RepoData]: A list of RepoData objects representing archived repositories
+
+    Example:
+        repos = await get_archived_repos(ctx)
+    """
+    return [repo for repo in await get_repos(ctx) if repo.archived]
 
 
 @mcp.tool(
@@ -116,7 +145,7 @@ async def get_forked_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
 @mcp.tool(
     name="Delete Repository",
     title="Delete GitHub Repository",
-    description="Deletes a repository owned by a specific user."
+    description="Deletes a repository owned by a specific user.",
 )
 async def delete_repo(owner: str, name: str, ctx: Context[ServerSession, None]) -> int:
     """Deletes a repository owned by a specific user.
@@ -137,7 +166,35 @@ async def delete_repo(owner: str, name: str, ctx: Context[ServerSession, None]) 
     """
     await ctx.info("Info: Starting deleting processing")
     response = make_github_request(url=f"repos/{owner}/{name}", method="DELETE")
-    response.raise_for_status()
+    return response.status_code
+
+
+@mcp.tool(
+    name="Update Repository",
+    title="Set Repository attribute",
+    description="This tool updates a repository's attribute",
+)
+async def update_repo(
+    owner: str, name: str, payload: dict, ctx: Context[ServerSession, None]
+) -> int:
+    """This tool updates a repository's attribute.
+
+    Args:
+        owner (str): The GitHub username or organization name that owns the repository
+        name (str): The name of the repository to make private
+        payload (dict): Object containing the attributes to be updated
+        ctx (Context[ServerSession, None]): Context for the MCP server session
+
+    Returns:
+        int: The HTTP status code of the update request
+
+    Example:
+        status_code = await update_repo("johndoe", "my-project", {"visibility": "private"}, ctx)
+    """
+    await ctx.info(f"Info: Updating {owner}/{name} repo")
+    response = make_github_request(
+        url=f"repos/{owner}/{name}", method="PATCH", data=json.dumps(payload)
+    )
     return response.status_code
 
 
@@ -164,11 +221,7 @@ async def make_repo_private(
     """
     await ctx.info(f"Info: Updating {name} to be private")
     data = {"visibility": "private"}
-    response = make_github_request(
-        url=f"repos/{owner}/{name}", method="PATCH", data=json.dumps(data)
-    )
-    response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
-    return response.status_code
+    return await update_repo(owner, name, data)
 
 
 @mcp.tool(
@@ -194,11 +247,7 @@ async def unarchive_repo(
     """
     await ctx.info(f"Info: Unarchiving {name}")
     data = {"archived": False}
-    response = make_github_request(
-        f"repos/{owner}/{name}", method="PATCH", data=json.dumps(data)
-    )
-    response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
-    return response.status_code
+    return await update_repo(owner, name, data)
 
 
 @mcp.tool(
@@ -222,11 +271,7 @@ async def archive_repo(owner: str, name: str, ctx: Context[ServerSession, None])
     """
     await ctx.info(f"Info: Unarchiving {name}")
     data = {"archived": True}
-    response = make_github_request(
-        url=f"repos/{owner}/{name}", method="PATCH", data=json.dumps(data)
-    )
-    response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
-    return response.status_code
+    return await update_repo(owner, name, data)
 
 
 if __name__ == "__main__":
