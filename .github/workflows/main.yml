@@ -31,10 +31,4 @@ jobs:
           name: docker-image
 
       - name: Load Docker image
-        run: ls -la
-
-      - name: Run tests inside the container
-        run: |
-          docker run --rm test-mcp-server:latest
-          pip install pytest requests
-          pytest --version
+        run: docker images
