@@ -30,11 +30,11 @@ jobs:
         with:
           name: docker-image
 
-      - name: Load Docker image
-        run: docker compose up -d --build
+#      - name: Load Docker image
+#        run: docker compose up -d --build
 
       - name: Run tests inside the container
         run: |
-          pip install pytest requests
-          pytest --version
+          docker compose up -d --build
+          pip install --no-cache-dir pytest requests
           pytest -vv tests/test_mcp.py
