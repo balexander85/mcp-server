@@ -33,9 +33,10 @@ jobs:
       - name: Load Docker image
         run: docker load < /tmp/docker-image.tar
 
+      - uses: actions/checkout@v4
       - name: Run tests inside the container
         run: |
-          docker run --rm -d test-mcp-server:latest
+          docker run --rm -d -p 8001:8000 test-mcp-server:latest
           ls -la
 #          pip install --no-cache-dir pytest requests
 #          pytest -vv tests/test_mcp.py
