@@ -247,7 +247,3 @@ async def archive_repo(owner: str, name: str, ctx: Context[ServerSession, None])
     await ctx.info(f"Info: Unarchiving {name}")
     data = {"archived": True}
     return await update_repo(owner, name, data)
-
-
-if __name__ == "__main__":
-    mcp.run()
