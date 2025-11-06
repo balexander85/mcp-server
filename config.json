@@ -4,7 +4,7 @@
       "command": "uv",
       "args": ["run", "python", "github/server.py"]
     },
-    "local": {
+    "time": {
       "command": "uv",
       "args": ["run", "python", "time/server.py"]
     }
