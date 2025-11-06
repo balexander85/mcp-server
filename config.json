@@ -3,6 +3,10 @@
     "github": {
       "command": "uv",
       "args": ["run", "python", "server.py"]
+    },
+    "local": {
+      "command": "uv",
+      "args": ["run", "python", "local_tool_server.py"]
     }
   }
 }
