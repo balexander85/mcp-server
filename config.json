@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "uv",
+      "args": ["run", "python", "github/server.py"]
+    },
+    "time": {
+      "command": "uv",
+      "args": ["run", "python", "time/server.py"]
+    }
+  }
+}
