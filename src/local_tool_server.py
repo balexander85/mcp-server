@@ -26,3 +26,7 @@ async def get_time() -> str:
     formatted_datetime = now_cdt.strftime("%A, %B %d, %Y, at %I:%M %p %Z")
 
     return formatted_datetime
+
+
+if __name__ == "__main__":
+    mcp.run()
