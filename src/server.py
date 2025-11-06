@@ -8,10 +8,12 @@ Github API Docs https://docs.github.com/en/rest/repos/repos
 """
 
 from typing import List
+import datetime
 import json
 
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.session import ServerSession
+import pytz
 
 from models.github import RepoData
 from util import make_github_request
@@ -247,6 +249,29 @@ async def archive_repo(owner: str, name: str, ctx: Context[ServerSession, None])
     await ctx.info(f"Info: Unarchiving {name}")
     data = {"archived": True}
     return await update_repo(owner, name, data, ctx)
+
+
+@mcp.tool(
+    name="Get Time",
+    title="List Current Time",
+    description="This tool returns current time for America/Chicago timezone.",
+)
+async def get_time() -> str:
+    """Fetches the current date and time in CDT (Central Daylight Time).
+
+    Returns:
+      A string representing the date and time in the format:
+      "Weekday, Month Day, Year, at Hour:Minute AM/PM CDT"
+    """
+    cdt_timezone = pytz.timezone(
+        "America/Chicago"
+    )  # CDT is typically associated with Chicago
+    now_cdt = datetime.datetime.now(cdt_timezone)
+
+    # Format the output string
+    formatted_datetime = now_cdt.strftime("%A, %B %d, %Y, at %I:%M %p %Z")
+
+    return formatted_datetime
 
 
 if __name__ == "__main__":
