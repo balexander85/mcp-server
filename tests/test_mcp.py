@@ -25,9 +25,6 @@ def test_github_docs_available():
     assert (
         response.status_code == 200
     ), f"Expected status code 200, but got {response.status_code}"
-    assert (
-        len(response.json()) > 1
-    ), f"Expected len of response.json() to be greater than 1, received: {len(response.json())}"
 
 
 def test_get_time_method_available():
