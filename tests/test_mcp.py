@@ -19,9 +19,9 @@ def test_mcp_server_running():
     ), f"Expected status code 200, but got {response.status_code}"
 
 
-def test_list_repos_method_available():
+def test_github_docs_available():
     """Checks that tool is available"""
-    response = requests.post("http://localhost:8001/github/List%20Repositories")
+    response = requests.get("http://localhost:8001/github/docs")
     assert (
         response.status_code == 200
     ), f"Expected status code 200, but got {response.status_code}"
