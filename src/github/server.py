@@ -13,12 +13,12 @@ import json
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.session import ServerSession
 
-from models.github import RepoData
-from util import make_github_request
+from ..models.github import RepoData
+from ..util import make_github_request
 
 
 # Create MCP instance
-mcp = FastMCP(name="Home")
+mcp = FastMCP(name="GitHub Tools")
 
 
 @mcp.tool(

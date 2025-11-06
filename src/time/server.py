@@ -3,7 +3,7 @@ import datetime
 from mcp.server.fastmcp import FastMCP
 import pytz
 
-mcp = FastMCP(name="Local Tools")
+mcp = FastMCP(name="Time Tools")
 
 
 @mcp.tool(

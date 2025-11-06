@@ -7,6 +7,7 @@ requires-python = ">=3.14"
 dependencies = [
     "mcp[cli]>=1.20.0",
     "mcpo>=0.0.19",
+    "pytz>=2025.2",
     "requests>=2.32.5",
 ]
 

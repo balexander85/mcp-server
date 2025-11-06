@@ -2,11 +2,11 @@
   "mcpServers": {
     "github": {
       "command": "uv",
-      "args": ["run", "python", "server.py"]
+      "args": ["run", "python", "github/server.py"]
     },
     "local": {
       "command": "uv",
-      "args": ["run", "python", "local_tool_server.py"]
+      "args": ["run", "python", "time/server.py"]
     }
   }
 }
