@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "github": {
-      "command": "uv run",
-      "args": ["python", "server.py"]
+      "command": "uv",
+      "args": ["run", "python", "server.py"]
     }
   }
 }
