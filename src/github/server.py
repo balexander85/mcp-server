@@ -13,8 +13,8 @@ import json
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.session import ServerSession
 
-from src.models.github import RepoData
-from src.util import make_github_request
+from models import RepoData
+from util import make_github_request
 
 
 # Create MCP instance
