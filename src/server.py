@@ -196,7 +196,7 @@ async def make_repo_private(
     """
     await ctx.info(f"Info: Updating {name} to be private")
     data = {"visibility": "private"}
-    return await update_repo(owner, name, data)
+    return await update_repo(owner, name, data, ctx)
 
 
 @mcp.tool(
@@ -222,7 +222,7 @@ async def unarchive_repo(
     """
     await ctx.info(f"Info: Unarchiving {name}")
     data = {"archived": False}
-    return await update_repo(owner, name, data)
+    return await update_repo(owner, name, data, ctx)
 
 
 @mcp.tool(
@@ -246,7 +246,7 @@ async def archive_repo(owner: str, name: str, ctx: Context[ServerSession, None])
     """
     await ctx.info(f"Info: Unarchiving {name}")
     data = {"archived": True}
-    return await update_repo(owner, name, data)
+    return await update_repo(owner, name, data, ctx)
 
 
 if __name__ == "__main__":
