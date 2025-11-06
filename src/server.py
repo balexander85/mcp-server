@@ -6,248 +6,96 @@ includes tools for managing github repositories
 Model Context Protocol Python SDK Docs https://github.com/modelcontextprotocol/python-sdk
 Github API Docs https://docs.github.com/en/rest/repos/repos
 """
+from typing import Any
 
-from typing import List
-import json
-
-from mcp.server.fastmcp import Context, FastMCP
-from mcp.server.session import ServerSession
-
-from models.github import RepoData
-from util import make_github_request
-
-
-# Create MCP instance
-mcp = FastMCP(name="Home")
+import anyio
+import click
+import mcp.types as types
+from mcp.server.lowlevel import Server
+from mcp.shared._httpx_utils import create_mcp_http_client
+from starlette.requests import Request
 
 
-@mcp.tool(
-    name="List Repositories",
-    title="List GitHub Repositories",
-    description="Fetches repositories from GitHub with optional filtering.",
+async def fetch_website(
+        url: str,
+) -> list[types.ContentBlock]:
+    headers = {"User-Agent": "MCP Test Server (github.com/modelcontextprotocol/python-sdk)"}
+    async with create_mcp_http_client(headers=headers) as client:
+        response = await client.get(url)
+        response.raise_for_status()
+        return [types.TextContent(type="text", text=response.text)]
+
+
+@click.command()
+@click.option("--port", default=8000, help="Port to listen on for SSE")
+@click.option(
+    "--transport",
+    type=click.Choice(["stdio", "sse"]),
+    default="stdio",
+    help="Transport type",
 )
-async def get_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
-    """Fetches an array of repositories from GitHub.
+def main(port: int, transport: str) -> int:
+    app = Server("mcp-website-fetcher")
 
-    This tool retrieves all repositories owned by the authenticated user.
-    It uses the GitHub API token from environment variables for authentication.
+    @app.call_tool()
+    async def fetch_tool(name: str, arguments: dict[str, Any]) -> list[types.ContentBlock]:
+        if name != "fetch":
+            raise ValueError(f"Unknown tool: {name}")
+        if "url" not in arguments:
+            raise ValueError("Missing required argument 'url'")
+        return await fetch_website(arguments["url"])
 
-    Args:
-        ctx (Context[ServerSession, None]): Context for the MCP server session
-
-    Returns:
-        List[RepoData]: A list of RepoData objects representing forked repositories
-
-    Example:
-        repos = await get_forked_repos(ctx)
-    """
-    await ctx.info("Info: Starting processing")
-    params = {
-        "per_page": 100,
-        "sort": "created",
-        "direction": "asc",
-    }
-    url = "user/repos"  # Adjust per_page as needed
-    repos: List[RepoData] = []
-    while url:
-        response = make_github_request(url, params=params)
-        data = response.json()
-        await ctx.info(f"response.request.url: {response.request.url}")
-        for repo in data:
-            repos.append(
-                RepoData(
-                    id=repo.get("id"),
-                    owner=repo.get("owner", {}).get("login"),
-                    name=repo.get("name"),
-                    description=repo.get("description"),
-                    url=repo.get("html_url"),
-                    visibility=repo.get("visibility"),
-                    fork=repo.get("fork"),
-                    archived=repo.get("archived"),
-                )
+    @app.list_tools()
+    async def list_tools() -> list[types.Tool]:
+        return [
+            types.Tool(
+                name="fetch",
+                title="Website Fetcher",
+                description="Fetches a website and returns its content",
+                inputSchema={
+                    "type": "object",
+                    "required": ["url"],
+                    "properties": {
+                        "url": {
+                            "type": "string",
+                            "description": "URL to fetch",
+                        }
+                    },
+                },
             )
-        url = response.links.get("next", {}).get("url")  # Get the next page URL
+        ]
 
-    return repos
+    if transport == "sse":
+        from mcp.server.sse import SseServerTransport
+        from starlette.applications import Starlette
+        from starlette.responses import Response
+        from starlette.routing import Mount, Route
 
+        sse = SseServerTransport("/messages/")
 
-@mcp.tool(
-    name="List Archived Repositories",
-    title="List Archived GitHub Repositories",
-    description="Fetches an array of archived repositories from GitHub.",
-)
-async def get_archived_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
-    """Fetches an array of archived repositories from GitHub.
+        async def handle_sse(request: Request):
+            async with sse.connect_sse(request.scope, request.receive, request._send) as streams:  # type: ignore[reportPrivateUsage]
+                await app.run(streams[0], streams[1], app.create_initialization_options())
+            return Response()
 
-    This tool retrieves all archived repositories owned by the authenticated user.
-    It uses the GitHub API token from environment variables for authentication.
+        starlette_app = Starlette(
+            debug=True,
+            routes=[
+                Route("/sse", endpoint=handle_sse, methods=["GET"]),
+                Mount("/messages/", app=sse.handle_post_message),
+            ],
+        )
 
-    Args:
-        ctx (Context[ServerSession, None]): Context for the MCP server session
+        import uvicorn
 
-    Returns:
-        List[RepoData]: A list of RepoData objects representing archived repositories
+        uvicorn.run(starlette_app, host="127.0.0.1", port=port)
+    else:
+        from mcp.server.stdio import stdio_server
 
-    Example:
-        repos = await get_archived_repos(ctx)
-    """
-    return [repo for repo in await get_repos(ctx) if repo.archived]
+        async def arun():
+            async with stdio_server() as streams:
+                await app.run(streams[0], streams[1], app.create_initialization_options())
 
+        anyio.run(arun)
 
-@mcp.tool(
-    name="List Forked Repositories",
-    title="List Forked GitHub Repositories",
-    description="Fetches an array of forked repositories from GitHub.",
-)
-async def get_forked_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
-    """Fetches an array of forked repositories from GitHub.
-
-    This tool retrieves all forked repositories owned by the authenticated user.
-    It uses the GitHub API token from environment variables for authentication.
-
-    Args:
-        ctx (Context[ServerSession, None]): Context for the MCP server session
-
-    Returns:
-        List[RepoData]: A list of RepoData objects representing forked repositories
-
-    Example:
-        repos = await get_forked_repos(ctx)
-    """
-    return [repo for repo in await get_repos(ctx) if repo.fork]
-
-
-@mcp.tool(
-    name="Delete Repository",
-    title="Delete GitHub Repository",
-    description="Deletes a repository owned by a specific user.",
-)
-async def delete_repo(owner: str, name: str, ctx: Context[ServerSession, None]) -> int:
-    """Deletes a repository owned by a specific user.
-
-    This tool permanently deletes a GitHub repository. The repository must be
-    owned by the authenticated user.
-
-    Args:
-        owner (str): The GitHub username or organization name that owns the repository
-        name (str): The name of the repository to delete
-        ctx (Context[ServerSession, None]): Context for the MCP server session
-
-    Returns:
-        int: The HTTP status code of the deletion request (204 for success)
-
-    Example:
-        delete_repo("johndoe", "my-project", ctx)
-    """
-    await ctx.info("Info: Starting deleting processing")
-    response = make_github_request(url=f"repos/{owner}/{name}", method="DELETE")
-    return response.status_code
-
-
-@mcp.tool(
-    name="Update Repository",
-    title="Set Repository attribute",
-    description="This tool updates a repository's attribute",
-)
-async def update_repo(
-    owner: str, name: str, payload: dict, ctx: Context[ServerSession, None]
-) -> int:
-    """This tool updates a repository's attribute.
-
-    Args:
-        owner (str): The GitHub username or organization name that owns the repository
-        name (str): The name of the repository to make private
-        payload (dict): Object containing the attributes to be updated
-        ctx (Context[ServerSession, None]): Context for the MCP server session
-
-    Returns:
-        int: The HTTP status code of the update request
-
-    Example:
-        status_code = await update_repo("johndoe", "my-project", {"visibility": "private"}, ctx)
-    """
-    await ctx.info(f"Info: Updating {owner}/{name} repo")
-    response = make_github_request(
-        url=f"repos/{owner}/{name}", method="PATCH", data=json.dumps(payload)
-    )
-    return response.status_code
-
-
-@mcp.tool(
-    name="Make Repository Private",
-    title="Set Repository Privacy to Private",
-    description="This tool updates a repository's visibility setting to private.",
-)
-async def make_repo_private(
-    owner: str, name: str, ctx: Context[ServerSession, None]
-) -> int:
-    """This tool updates a repository's visibility setting to private.
-
-    Args:
-        owner (str): The GitHub username or organization name that owns the repository
-        name (str): The name of the repository to make private
-        ctx (Context[ServerSession, None]): Context for the MCP server session
-
-    Returns:
-        int: The HTTP status code of the update request
-
-    Example:
-        status_code = await make_repo_private("johndoe", "my-project", ctx)
-    """
-    await ctx.info(f"Info: Updating {name} to be private")
-    data = {"visibility": "private"}
-    return await update_repo(owner, name, data)
-
-
-@mcp.tool(
-    name="Unarchive Repository",
-    title="Unarchive GitHub Repository",
-    description="This tool unarchives a repository that was previously archived.",
-)
-async def unarchive_repo(
-    owner: str, name: str, ctx: Context[ServerSession, None]
-) -> int:
-    """This tool unarchives a repository that was previously archived.
-
-    Args:
-        owner (str): The GitHub username or organization name that owns the repository
-        name (str): The name of the repository to unarchive
-        ctx (Context[ServerSession, None]): Context for the MCP server session
-
-    Returns:
-        int: The HTTP status code of the update request
-
-    Example:
-        status_code = await unarchive_repo("johndoe", "my-project", ctx)
-    """
-    await ctx.info(f"Info: Unarchiving {name}")
-    data = {"archived": False}
-    return await update_repo(owner, name, data)
-
-
-@mcp.tool(
-    name="Archive Repository",
-    title="Archive GitHub Repository",
-    description="This tool archives a repository, making it read-only.",
-)
-async def archive_repo(owner: str, name: str, ctx: Context[ServerSession, None]) -> int:
-    """This tool archives a repository, making it read-only.
-
-    Args:
-        owner (str): The GitHub username or organization name that owns the repository
-        name (str): The name of the repository to archive
-        ctx (Context[ServerSession, None]): Context for the MCP server session
-
-    Returns:
-        int: The HTTP status code of the update request
-
-    Example:
-        status_code = await archive_repo("johndoe", "my-project", ctx)
-    """
-    await ctx.info(f"Info: Unarchiving {name}")
-    data = {"archived": True}
-    return await update_repo(owner, name, data)
-
-
-if __name__ == "__main__":
-    mcp.run()
+    return 0
