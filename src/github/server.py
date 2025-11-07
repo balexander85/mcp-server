@@ -249,5 +249,10 @@ async def archive_repo(owner: str, name: str, ctx: Context[ServerSession, None])
     return await update_repo(owner, name, data, ctx)
 
 
+@mcp.prompt(title="Code Review")
+def review_code(code: str) -> str:
+    return f"Please review this code:\n\n{code}"
+
+
 if __name__ == "__main__":
     mcp.run()
