@@ -117,31 +117,32 @@ async def get_forked_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
     return [repo for repo in await get_repos(ctx) if repo.fork]
 
 
-@mcp.tool(
-    name="Delete Repository",
-    title="Delete GitHub Repository",
-    description="Deletes a repository owned by a specific user.",
-)
-async def delete_repo(owner: str, name: str, ctx: Context[ServerSession, None]) -> int:
-    """Deletes a repository owned by a specific user.
-
-    This tool permanently deletes a GitHub repository. The repository must be
-    owned by the authenticated user.
-
-    Args:
-        owner (str): The GitHub username or organization name that owns the repository
-        name (str): The name of the repository to delete
-        ctx (Context[ServerSession, None]): Context for the MCP server session
-
-    Returns:
-        int: The HTTP status code of the deletion request (204 for success)
-
-    Example:
-        delete_repo("johndoe", "my-project", ctx)
-    """
-    await ctx.info("Info: Starting deleting processing")
-    response = make_github_request(url=f"repos/{owner}/{name}", method="DELETE")
-    return response.status_code
+# Temporarily disabling DELETE until further testing and/or need
+# @mcp.tool(
+#     name="Delete Repository",
+#     title="Delete GitHub Repository",
+#     description="Deletes a repository owned by a specific user.",
+# )
+# async def delete_repo(owner: str, name: str, ctx: Context[ServerSession, None]) -> int:
+#     """Deletes a repository owned by a specific user.
+#
+#     This tool permanently deletes a GitHub repository. The repository must be
+#     owned by the authenticated user.
+#
+#     Args:
+#         owner (str): The GitHub username or organization name that owns the repository
+#         name (str): The name of the repository to delete
+#         ctx (Context[ServerSession, None]): Context for the MCP server session
+#
+#     Returns:
+#         int: The HTTP status code of the deletion request (204 for success)
+#
+#     Example:
+#         delete_repo("johndoe", "my-project", ctx)
+#     """
+#     await ctx.info("Info: Starting deleting processing")
+#     response = make_github_request(url=f"repos/{owner}/{name}", method="DELETE")
+#     return response.status_code
 
 
 @mcp.tool(
