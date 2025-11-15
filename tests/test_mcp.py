@@ -31,10 +31,10 @@ def test_get_time_method_available():
     """Checks that tool is available"""
     response = requests.post("http://localhost:8001/time/Get%20Time")
     assert (
-            response.status_code == 200
+        response.status_code == 200
     ), f"Expected status code 200, but got {response.status_code}"
     assert (
-            len(response.json()) > 1
+        len(response.json()) > 1
     ), f"Expected len of response.json() to be greater than 1, received: {len(response.json())}"
 
 
