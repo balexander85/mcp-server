@@ -1,10 +1,10 @@
 """
 First attempt at creating a MCP server
 
-includes tools for managing github repositories
+includes tools for managing GitHub repositories
 
 Model Context Protocol Python SDK Docs https://github.com/modelcontextprotocol/python-sdk
-Github API Docs https://docs.github.com/en/rest/repos/repos
+GitHub API Docs https://docs.github.com/en/rest/repos/repos
 """
 
 from typing import List
@@ -24,9 +24,9 @@ mcp = FastMCP(name="GitHub Tools")
 @mcp.tool(
     name="List Repositories",
     title="List GitHub Repositories",
-    description="Fetches a list of all repositories owned by the authenticated GitHub user.  "
+    description="Fetches a list of all repositories owned by the authenticated GitHub user. "
     "This tool retrieves repositories from GitHub using the GitHub API token from environment "
-    "variables for authentication.  It returns a list of `RepoData` objects, each containing "
+    "variables for authentication. It returns a list of `RepoData` objects, each containing "
     "information about a repository.",
 )
 async def get_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
@@ -59,8 +59,6 @@ async def get_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
         for repo in data:
             repos.append(
                 RepoData(
-                    id=repo.get("id"),
-                    owner=repo.get("owner", {}).get("login"),
                     name=repo.get("name"),
                     description=repo.get("description"),
                     url=repo.get("html_url"),
@@ -77,7 +75,8 @@ async def get_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
 @mcp.tool(
     name="List Archived Repositories",
     title="List Archived GitHub Repositories",
-    description="Fetches an array of archived repositories from GitHub.",
+    description="Fetches a list of archived repositories owned by the authenticated GitHub user. "
+    "This tool returns a list of `RepoData` objects representing the archived repositories.",
 )
 async def get_archived_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
     """Fetches an array of archived repositories from GitHub.
