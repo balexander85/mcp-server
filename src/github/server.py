@@ -24,7 +24,10 @@ mcp = FastMCP(name="GitHub Tools")
 @mcp.tool(
     name="List Repositories",
     title="List GitHub Repositories",
-    description="Fetches repositories from GitHub with optional filtering.",
+    description="Fetches a list of all repositories owned by the authenticated GitHub user.  "
+    "This tool retrieves repositories from GitHub using the GitHub API token from environment "
+    "variables for authentication.  It returns a list of `RepoData` objects, each containing "
+    "information about a repository.",
 )
 async def get_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
     """Fetches an array of repositories from GitHub.
