@@ -99,7 +99,8 @@ async def get_archived_repos(ctx: Context[ServerSession, None]) -> List[RepoData
 @mcp.tool(
     name="List Forked Repositories",
     title="List Forked GitHub Repositories",
-    description="Fetches an array of forked repositories from GitHub.",
+    description="Fetches a list of forked repositories owned by the authenticated GitHub user. "
+    "This tool returns a list of `RepoData` objects representing the archived repositories.",
 )
 async def get_forked_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
     """Fetches an array of forked repositories from GitHub.
@@ -123,7 +124,8 @@ async def get_forked_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
 # @mcp.tool(
 #     name="Delete Repository",
 #     title="Delete GitHub Repository",
-#     description="Deletes a repository owned by a specific user.",
+#     description="Deletes a repository owned by the authenticated GitHub user."
+#     "This tool returns a list of `RepoData` objects representing the archived repositories.",
 # )
 # async def delete_repo(owner: str, name: str, ctx: Context[ServerSession, None]) -> int:
 #     """Deletes a repository owned by a specific user.
@@ -150,7 +152,10 @@ async def get_forked_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
 @mcp.tool(
     name="Update Repository",
     title="Set Repository attribute",
-    description="This tool updates a repository's attribute",
+    description="Updates an attribute of a GitHub repository. This tool allows you to modify "
+    "properties like visibility (public/private) of a repository owned by the "
+    "authenticated user. You must provide the repository owner, name, and a JSON "
+    "payload containing the attribute(s) to update.",
 )
 async def update_repo(
     owner: str, name: str, payload: dict, ctx: Context[ServerSession, None]
@@ -179,7 +184,9 @@ async def update_repo(
 @mcp.tool(
     name="Make Repository Private",
     title="Set Repository Privacy to Private",
-    description="This tool updates a repository's visibility setting to private.",
+    description="Sets a GitHub repository's visibility to private. "
+    "This tool internally uses the 'Update Repository' "
+    "tool to modify the repository's settings.",
 )
 async def make_repo_private(
     owner: str, name: str, ctx: Context[ServerSession, None]
@@ -205,7 +212,8 @@ async def make_repo_private(
 @mcp.tool(
     name="Unarchive Repository",
     title="Unarchive GitHub Repository",
-    description="This tool unarchives a repository that was previously archived.",
+    description="Unarchives a GitHub repository. This tool utilizes the 'Update Repository' "
+    "tool to modify the repository's archive status.",
 )
 async def unarchive_repo(
     owner: str, name: str, ctx: Context[ServerSession, None]
@@ -231,7 +239,8 @@ async def unarchive_repo(
 @mcp.tool(
     name="Archive Repository",
     title="Archive GitHub Repository",
-    description="This tool archives a repository, making it read-only.",
+    description="Unarchives a GitHub repository. This tool utilizes the 'Update Repository' "
+    "tool to modify the repository's archive status making it read-only.",
 )
 async def archive_repo(owner: str, name: str, ctx: Context[ServerSession, None]) -> int:
     """This tool archives a repository, making it read-only.
@@ -252,7 +261,11 @@ async def archive_repo(owner: str, name: str, ctx: Context[ServerSession, None])
     return await update_repo(owner, name, data, ctx)
 
 
-@mcp.prompt(title="Code Review")
+@mcp.prompt(
+    title="Code Review",
+    description="This prompt formats a code snippet for review by an LLM. "
+    "It adds a standard introductory phrase to encourage detailed feedback.",
+)
 def review_code(code: str) -> str:
     return f"Please review this code:\n\n{code}"
 
