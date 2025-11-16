@@ -270,5 +270,13 @@ def review_code(code: str) -> str:
     return f"Please review this code:\n\n{code}"
 
 
+@mcp.prompt(
+    title="Unique Identifier Test",
+    description="Tests that the MCP server is providing the template.",
+)
+def unique_identifier_test(input_string: str) -> str:
+    return f"**MCP-TEMPLATE-START**\n{input_string}\n**MCP-TEMPLATE-END**"
+
+
 if __name__ == "__main__":
     mcp.run()
