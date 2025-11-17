@@ -22,7 +22,6 @@ mcp = FastMCP(name="GitHub Tools")
 
 
 @mcp.tool(
-    name="List Repositories",
     title="List GitHub Repositories",
     description="Fetches a list of all repositories owned by the authenticated GitHub user. "
     "This tool retrieves repositories from GitHub using the GitHub API token from environment "
@@ -73,7 +72,6 @@ async def get_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
 
 
 @mcp.tool(
-    name="List Archived Repositories",
     title="List Archived GitHub Repositories",
     description="Fetches a list of archived repositories owned by the authenticated GitHub user. "
     "This tool returns a list of `RepoData` objects representing the archived repositories.",
@@ -97,7 +95,6 @@ async def get_archived_repos(ctx: Context[ServerSession, None]) -> List[RepoData
 
 
 @mcp.tool(
-    name="List Forked Repositories",
     title="List Forked GitHub Repositories",
     description="Fetches a list of forked repositories owned by the authenticated GitHub user. "
     "This tool returns a list of `RepoData` objects representing the archived repositories.",
@@ -122,7 +119,6 @@ async def get_forked_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
 
 # Temporarily disabling DELETE until further testing and/or need
 # @mcp.tool(
-#     name="Delete Repository",
 #     title="Delete GitHub Repository",
 #     description="Deletes a repository owned by the authenticated GitHub user."
 #     "This tool returns a list of `RepoData` objects representing the archived repositories.",
@@ -150,8 +146,7 @@ async def get_forked_repos(ctx: Context[ServerSession, None]) -> List[RepoData]:
 
 
 @mcp.tool(
-    name="Update Repository",
-    title="Set Repository attribute",
+    title="Update Repository",
     description="Updates an attribute of a GitHub repository. This tool allows you to modify "
     "properties like visibility (public/private) of a repository owned by the "
     "authenticated user. You must provide the repository owner, name, and a JSON "
@@ -182,8 +177,7 @@ async def update_repo(
 
 
 @mcp.tool(
-    name="Make Repository Private",
-    title="Set Repository Privacy to Private",
+    title="Make Repository Private",
     description="Sets a GitHub repository's visibility to private. "
     "This tool internally uses the 'Update Repository' "
     "tool to modify the repository's settings.",
@@ -210,7 +204,6 @@ async def make_repo_private(
 
 
 @mcp.tool(
-    name="Unarchive Repository",
     title="Unarchive GitHub Repository",
     description="Unarchives a GitHub repository. This tool utilizes the 'Update Repository' "
     "tool to modify the repository's archive status.",
@@ -237,7 +230,6 @@ async def unarchive_repo(
 
 
 @mcp.tool(
-    name="Archive Repository",
     title="Archive GitHub Repository",
     description="Unarchives a GitHub repository. This tool utilizes the 'Update Repository' "
     "tool to modify the repository's archive status making it read-only.",
@@ -261,21 +253,16 @@ async def archive_repo(owner: str, name: str, ctx: Context[ServerSession, None])
     return await update_repo(owner, name, data, ctx)
 
 
-@mcp.prompt(
-    title="Code Review",
-    description="This prompt formats a code snippet for review by an LLM. "
-    "It adds a standard introductory phrase to encourage detailed feedback.",
-)
-def review_code(code: str) -> str:
-    return f"Please review this code:\n\n{code}"
+@mcp.prompt()
+def greet_user(name: str, style: str = "friendly") -> str:
+    """Generate a greeting prompt"""
+    styles = {
+        "friendly": "Please write a warm, friendly greeting",
+        "formal": "Please write a formal, professional greeting",
+        "casual": "Please write a casual, relaxed greeting",
+    }
 
-
-@mcp.prompt(
-    title="Unique Identifier Test",
-    description="Tests that the MCP server is providing the template.",
-)
-def unique_identifier_test(input_string: str) -> str:
-    return f"**MCP-TEMPLATE-START**\n{input_string}\n**MCP-TEMPLATE-END**"
+    return f"{styles.get(style, styles['friendly'])} for someone named {name}."
 
 
 if __name__ == "__main__":
