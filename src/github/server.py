@@ -253,16 +253,9 @@ async def archive_repo(owner: str, name: str, ctx: Context[ServerSession, None])
     return await update_repo(owner, name, data, ctx)
 
 
-@mcp.prompt()
-def greet_user(name: str, style: str = "friendly") -> str:
-    """Generate a greeting prompt"""
-    styles = {
-        "friendly": "Please write a warm, friendly greeting",
-        "formal": "Please write a formal, professional greeting",
-        "casual": "Please write a casual, relaxed greeting",
-    }
-
-    return f"{styles.get(style, styles['friendly'])} for someone named {name}."
+@mcp.prompt(title="Code Review")
+def review_code(code: str) -> str:
+    return f"Please review this code:\n\n{code}"
 
 
 if __name__ == "__main__":
