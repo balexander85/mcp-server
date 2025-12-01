@@ -8,8 +8,6 @@ class RepoData(BaseModel):
     Represents a repository from GitHub.
 
     Attributes:
-        id: The repository ID.
-        owner: The repository owner.
         name: The repository name.
         description: The repository description.
         url: The repository URL.
@@ -18,8 +16,6 @@ class RepoData(BaseModel):
         archived: Is the repository archived
     """
 
-    id: int
-    owner: str
     name: str
     description: str | None
     url: str
