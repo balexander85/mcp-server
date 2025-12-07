@@ -21,6 +21,7 @@ def test_mcp_server_running():
 
 def test_github_docs_available():
     """Checks that tool is available"""
+    sleep(10)  # temp measure to give time for server to load
     response = requests.get("http://localhost:8001/github/docs")
     assert (
         response.status_code == 200
@@ -29,6 +30,7 @@ def test_github_docs_available():
 
 def test_get_time_method_available():
     """Checks that tool is available"""
+    sleep(10)  # temp measure to give time for server to load
     response = requests.post("http://localhost:8001/time/Get%20Time")
     assert (
         response.status_code == 200
