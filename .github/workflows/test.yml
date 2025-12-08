@@ -19,10 +19,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      - name: Install test dependencies
+        run: |
+          pip install --no-cache-dir pytest requests
+
       - name: Run tests inside the container
         run: |
+          # Start the container in the background
           docker run --rm -d -p 8001:8000 test-mcp-server:latest
-          pip install --no-cache-dir pytest requests
+          # Give the server a moment to boot
+          sleep 5
+          # Run tests
           pytest -vv tests/test_mcp.py
-
-      - run: echo "🍏 This job's status is ${{ job.status }}."
