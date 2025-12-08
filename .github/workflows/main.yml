@@ -8,29 +8,9 @@ on:
 
 jobs:
 
-  build:
+  build_job:
     uses: ./.github/workflows/build.yml
 
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download Docker image artifact
-        uses: actions/download-artifact@v6
-        with:
-          name: docker-image
-          path: /tmp
-
-      - name: Load Docker image
-        run: docker load < /tmp/docker-image.tar
-
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Run tests inside the container
-        run: |
-          docker run --rm -d -p 8001:8000 test-mcp-server:latest
-          pip install --no-cache-dir pytest requests
-          pytest -vv tests/test_mcp.py
-
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+  test_job:
+    needs: build_job
+    uses: ./.github/workflows/test.yml
