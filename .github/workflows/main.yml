@@ -1,43 +1,16 @@
-name: Main Build Verification
+name: CI Pipeline
 
 on:
+  push:
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
 jobs:
 
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build the Docker image
-        run: |
-          docker build . --file Dockerfile --tag test-mcp-server:latest
-          docker save -o /tmp/docker-image.tar test-mcp-server:latest
-        id: build-image
+  build_job:
+    uses: ./.github/workflows/build.yml
 
-      - name: Save Docker image as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-image
-          path: /tmp/docker-image.tar
-
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download Docker image artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: docker-image
-          path: /tmp
-
-      - name: Load Docker image
-        run: docker load < /tmp/docker-image.tar
-
-      - uses: actions/checkout@v4
-      - name: Run tests inside the container
-        run: |
-          docker run --rm -d -p 8001:8000 test-mcp-server:latest
-          pip install --no-cache-dir pytest requests
-          pytest -vv tests/test_mcp.py
+  test_job:
+    needs: build_job
+    uses: ./.github/workflows/test.yml

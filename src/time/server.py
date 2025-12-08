@@ -11,7 +11,7 @@ mcp = FastMCP(name="Time Tools")
     title="List Current Time",
     description="This tool returns current time for America/Chicago timezone.",
 )
-async def get_time(time_zone="America/Chicago") -> str:
+async def get_time(time_zone: str = "America/Chicago") -> str:
     """Fetches the current date and time in CDT (Central Daylight Time).
 
     Args:
