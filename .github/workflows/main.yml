@@ -1,4 +1,4 @@
-name: Main Build Verification
+name: CI Pipeline
 
 on:
   push:
@@ -11,14 +11,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v5
+
       - name: Build the Docker image
         run: |
           docker build . --file Dockerfile --tag test-mcp-server:latest
           docker save -o /tmp/docker-image.tar test-mcp-server:latest
-        id: build-image
 
-      - name: Save Docker image as artifact
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: docker-image
@@ -37,7 +38,9 @@ jobs:
       - name: Load Docker image
         run: docker load < /tmp/docker-image.tar
 
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v5
+
       - name: Run tests inside the container
         run: |
           docker run --rm -d -p 8001:8000 test-mcp-server:latest
