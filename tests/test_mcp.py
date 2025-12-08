@@ -9,7 +9,7 @@ from time import sleep
 BASE_URL = "http://localhost:8001"
 
 
-def wait_for_server(wait: int = 3):
+def wait_for_server(wait: int = 8):
     """Temporarily using sleep method until more advanced method is implemented"""
     sleep(wait)
 
