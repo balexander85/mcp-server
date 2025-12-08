@@ -30,14 +30,12 @@ class TestMCP:
             response.status_code == 200
         ), f"Expected status code 200, but got {response.status_code}"
 
-
     def test_github_docs_available(self):
         """Checks that tool is available"""
         response = requests.get(f"{BASE_URL}/github/docs")
         assert (
             response.status_code == 200
         ), f"Expected status code 200, but got {response.status_code}"
-
 
     def test_get_time_method_available(self):
         """Checks that tool is available"""
@@ -50,15 +48,14 @@ class TestMCP:
             len(response.json()) > 1
         ), f"Expected len of response.json() to be greater than 1, received: {len(response.json())}"
 
-
     def test_get_time_method_available_no_timezone(self):
         """Checks that tool is available"""
         response = requests.post(f"{BASE_URL}/time/Get%20Time", json={})
         assert (
-                response.status_code == 200
+            response.status_code == 200
         ), f"Expected status code 200, but got {response.status_code}"
         assert (
-                len(response.json()) > 1
+            len(response.json()) > 1
         ), f"Expected len of response.json() to be greater than 1, received: {len(response.json())}"
 
 
