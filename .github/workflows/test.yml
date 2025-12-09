@@ -24,11 +24,11 @@ jobs:
           pip install --no-cache-dir pytest requests
 
       - name: Run tests inside the container
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
         run: |
-          # set env variable
-          export GITHUB_TOKEN=${{ secrets.CI_GITHUB_TOKEN }}
           # Start the container in the background
-          docker run -e GITHUB_TOKEN="$GITHUB_TOKEN" --rm -d -p 8001:8000 test-mcp-server:latest
+          docker run --rm -d -p 8001:8000 -e GITHUB_TOKEN="$GITHUB_TOKEN" test-mcp-server:latest
           # Give the server a moment to boot
           sleep 5
           # Run tests
