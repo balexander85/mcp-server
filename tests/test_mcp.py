@@ -5,6 +5,7 @@ Integration test for MCP server using requests
 from time import sleep
 from datetime import datetime
 
+import pytz
 import pytest
 import requests
 
@@ -61,7 +62,12 @@ class TestTimeMCP:
     def test_get_time_method(self, payload):
         """Checks that tool is available"""
         response = requests.post(f"{BASE_URL}/time/Get%20Time", json=payload)
-        today = datetime.today().strftime("%A, %B %d, %Y")
+        # Define the Central Time Zone
+        central_timezone = pytz.timezone('America/Chicago')
+        # Create date with Central Time Zone
+        now_cdt = datetime.now(central_timezone)
+        # Format the date
+        today = now_cdt.strftime("%A, %B %d, %Y")
         assert (
             response.status_code == 200
         ), f"Expected status code 200, but got {response.status_code}"
