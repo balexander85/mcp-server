@@ -13,7 +13,7 @@ import requests
 BASE_URL = "http://localhost:8001"
 
 
-@pytest.fixture(scope="class", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def wait_for_server(wait: int = 2):
     """Temporarily using sleep method until more advanced method is implemented"""
     sleep(wait)
