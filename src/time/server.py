@@ -7,7 +7,6 @@ mcp = FastMCP(name="Time Tools")
 
 
 @mcp.tool(
-    name="Get Time",
     title="List Current Time",
     description="This tool returns current time for America/Chicago timezone.",
 )

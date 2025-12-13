@@ -61,9 +61,9 @@ class TestTimeMCP:
     )
     def test_get_time_method(self, payload):
         """Checks that tool is available"""
-        response = requests.post(f"{BASE_URL}/time/Get%20Time", json=payload)
+        response = requests.post(f"{BASE_URL}/time/get_time", json=payload)
         # Define the Central Time Zone
-        central_timezone = pytz.timezone('America/Chicago')
+        central_timezone = pytz.timezone("America/Chicago")
         # Create date with Central Time Zone
         now_cdt = datetime.now(central_timezone)
         # Format the date
