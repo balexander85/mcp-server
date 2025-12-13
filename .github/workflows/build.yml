@@ -17,7 +17,7 @@ jobs:
       - name: Run Linter
         run: |
           pip install --no-cache-dir black
-          black .
+          black --check --diff .
 
       - name: Build the Docker image
         run: |
