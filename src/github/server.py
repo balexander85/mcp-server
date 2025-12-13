@@ -1,5 +1,5 @@
 """
-First attempt at creating a MCP server
+First attempt at creating an MCP server
 
 includes tools for managing GitHub repositories
 
